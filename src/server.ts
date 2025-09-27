@@ -81,7 +81,9 @@ export function move(gameState: GameState): MoveResponse {
 
   // TODO: Step 3 - Prevent your Battlesnake from colliding with other Battlesnakes
   gameState.board.snakes
-    .filter((snake) => snake.id !== gameState.you.id)
+    .filter(
+      (snake) => snake.id !== gameState.you.id && mySnakeLength > snake.length
+    )
     .forEach((snake) => {
       snake.body.forEach((segment) => {
         if (
