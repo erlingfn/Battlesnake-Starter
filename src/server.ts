@@ -339,6 +339,7 @@ export function move(gameState: GameState): MoveResponse {
 
   // If distance shorter than 3, move towards head of shorter snake
   if (minDistanceSnakes < 3) {
+    console.log("Go for kill");
     const closestShorterSnake =
       shorterSnakesHeads[distances.indexOf(minDistanceSnakes)];
     if (closestShorterSnake.x < myHead.x) {
@@ -348,6 +349,7 @@ export function move(gameState: GameState): MoveResponse {
     }
     // If no snake to kill and food which I am closest to, move towards food
   } else if (closestFood !== undefined) {
+    console.log("Go for food");
     const preferredMoves: string[] = [];
     if (myHead.x < closestFood.x) {
       preferredMoves.push("right");
@@ -372,6 +374,7 @@ export function move(gameState: GameState): MoveResponse {
     }
     // If no food to move towards choose any space with enough open space next to it
   } else {
+    console.log("No food or kill found");
     // Filter safe moves by whether they lead to large open spaces
     const safeMovesInOpenSpace = safeMoves.filter((move) => {
       let targetCoord: Coord;
@@ -398,6 +401,8 @@ export function move(gameState: GameState): MoveResponse {
         safeMovesInOpenSpace[
           Math.floor(Math.random() * safeMovesInOpenSpace.length)
         ];
+    } else {
+      console.log("No moves part of open space, choosing random!");
     }
   }
 
