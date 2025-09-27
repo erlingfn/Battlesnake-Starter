@@ -79,8 +79,65 @@ export function move(gameState: GameState): MoveResponse {
   });
 
   // TODO: Step 3 - Prevent your Battlesnake from colliding with other Battlesnakes
-  // This would be a great next step! You can loop over `gameState.board.snakes`
-  // and apply the same logic as Step 2 for each opponent snake's body.
+  gameState.board.snakes
+    .filter((snake) => snake.id !== gameState.you.id)
+    .forEach((snake) => {
+      snake.body.forEach((segment) => {
+        if (myHead.x === segment.x - 1 && myHead.y === segment.y) {
+          isMoveSafe.right = false; // Other snake is to the right
+        }
+        if (myHead.x === segment.x + 1 && myHead.y === segment.y) {
+          isMoveSafe.left = false; // Other snake is to the left
+        }
+        if (myHead.y === segment.y - 1 && myHead.x === segment.x) {
+          isMoveSafe.up = false; // Other snake is above
+        }
+        if (myHead.y === segment.y + 1 && myHead.x === segment.x) {
+          isMoveSafe.down = false; // Other snake is below
+        }
+      });
+    });
+
+  // Check if coord is next to other coord
+  const isNextTo = (coord1: Coord, coord2: Coord) => {
+    return (
+      (coord1.x === coord2.x && coord1.y === coord2.y + 1) ||
+      (coord1.x === coord2.x && coord1.y === coord2.y - 1) ||
+      (coord1.y === coord2.y && coord1.x === coord2.x + 1) ||
+      (coord1.y === coord2.y && coord1.x === coord2.x - 1)
+    );
+  };
+
+  // Generate coord
+  const coordsAroundHead = [
+    { x: myHead.x - 1, y: myHead.y },
+    { x: myHead.x + 1, y: myHead.y },
+    { x: myHead.x, y: myHead.y - 1 },
+    { x: myHead.x, y: myHead.y + 1 },
+  ];
+
+  // Check if other snakes may move into same space as you and mark as unsafe
+  gameState.board.snakes
+    .filter((snake) => snake.id !== gameState.you.id)
+    .forEach((snake) => {
+      const head = snake.head;
+      if (isNextTo(coordsAroundHead[0], head)) {
+        console.log("Other snake is to the right");
+        isMoveSafe.right = false; // Other snake is to the right
+      }
+      if (isNextTo(coordsAroundHead[1], head)) {
+        console.log("Other snake is to the left");
+        isMoveSafe.left = false; // Other snake is to the left
+      }
+      if (isNextTo(coordsAroundHead[2], head)) {
+        console.log("Other snake is above");
+        isMoveSafe.up = false; // Other snake is above
+      }
+      if (isNextTo(coordsAroundHead[3], head)) {
+        console.log("Other snake is below");
+        isMoveSafe.down = false; // Other snake is below
+      }
+    });
 
   // Get all safe moves
   const safeMoves = Object.keys(isMoveSafe).filter((key) => isMoveSafe[key]);
@@ -151,5 +208,6 @@ export function move(gameState: GameState): MoveResponse {
   }
 
   console.log(`MOVE ${gameState.turn}: ${nextMove}`);
+  console.log(isMoveSafe);
   return { move: nextMove };
 }
