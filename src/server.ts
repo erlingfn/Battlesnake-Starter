@@ -20,6 +20,9 @@ export function end(gameState: GameState): void {
 }
 
 export function move(gameState: GameState): MoveResponse {
+  // Get the length of your own battlesnake
+  const mySnakeLength = gameState.you.length;
+
   let isMoveSafe: { [key: string]: boolean } = {
     up: true,
     down: true,
@@ -90,19 +93,39 @@ export function move(gameState: GameState): MoveResponse {
   // Step 4: Move towards the closest food
   const food = gameState.board.food;
   let closestFood: Coord | undefined;
-  let minDistance = Infinity;
+  let minDistanceFood = Infinity;
 
   food.forEach((f) => {
     const distance = Math.abs(myHead.x - f.x) + Math.abs(myHead.y - f.y);
-    if (distance < minDistance) {
-      minDistance = distance;
+    if (distance < minDistanceFood) {
+      minDistanceFood = distance;
       closestFood = f;
     }
   });
 
-  let nextMove = safeMoves[Math.floor(Math.random() * safeMoves.length)];
+  // Find all snakes shorter than you
+  const shorterSnakes = gameState.board.snakes.filter(
+    (snake) => snake.length + 1 < mySnakeLength && snake.id !== gameState.you.id
+  );
 
-  if (closestFood !== undefined) {
+  // Find distance to head of shorter snakes
+  const shorterSnakesHeads = shorterSnakes.map((snake) => snake.head);
+  const distances = shorterSnakesHeads.map(
+    (head) => Math.abs(myHead.x - head.x) + Math.abs(myHead.y - head.y)
+  );
+  const minDistanceSnakes = Math.min(...distances);
+
+  let nextMove = safeMoves[Math.floor(Math.random() * safeMoves.length)];
+  // If distance shorter than 3, move towards head of shorter snake
+  if (minDistanceSnakes < 3) {
+    const closestShorterSnake =
+      shorterSnakesHeads[distances.indexOf(minDistanceSnakes)];
+    if (closestShorterSnake.x < myHead.x) {
+      nextMove = "left";
+    } else if (closestShorterSnake.x > myHead.x) {
+      nextMove = "right";
+    }
+  } else if (closestFood !== undefined) {
     const preferredMoves: string[] = [];
     if (myHead.x < closestFood.x) {
       preferredMoves.push("right");
