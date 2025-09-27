@@ -116,6 +116,30 @@ export function move(gameState: GameState): MoveResponse {
     );
   };
 
+  // Find the closest snake head to a given coordinate
+  const findClosestSnakeHead = (targetCoord: Coord) => {
+    const snakes = gameState.board.snakes;
+
+    if (snakes.length === 0) return null;
+
+    let closestSnake = snakes[0];
+    let minDistance =
+      Math.abs(targetCoord.x - closestSnake.head.x) +
+      Math.abs(targetCoord.y - closestSnake.head.y);
+
+    for (let i = 1; i < snakes.length; i++) {
+      const distance =
+        Math.abs(targetCoord.x - snakes[i].head.x) +
+        Math.abs(targetCoord.y - snakes[i].head.y);
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestSnake = snakes[i];
+      }
+    }
+
+    return closestSnake.id;
+  };
+
   // Generate coord
   const coordsAroundHead = [
     { x: myHead.x - 1, y: myHead.y },
@@ -162,7 +186,8 @@ export function move(gameState: GameState): MoveResponse {
 
   food.forEach((f) => {
     const distance = Math.abs(myHead.x - f.x) + Math.abs(myHead.y - f.y);
-    if (distance < minDistanceFood) {
+    const closestSnakeId = findClosestSnakeHead(f);
+    if (distance < minDistanceFood && closestSnakeId === gameState.you.id) {
       minDistanceFood = distance;
       closestFood = f;
     }
@@ -181,6 +206,7 @@ export function move(gameState: GameState): MoveResponse {
   const minDistanceSnakes = Math.min(...distances);
 
   let nextMove = safeMoves[Math.floor(Math.random() * safeMoves.length)];
+
   // If distance shorter than 3, move towards head of shorter snake
   if (minDistanceSnakes < 3) {
     const closestShorterSnake =
