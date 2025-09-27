@@ -83,6 +83,14 @@ export function move(gameState: GameState): MoveResponse {
     .filter((snake) => snake.id !== gameState.you.id)
     .forEach((snake) => {
       snake.body.forEach((segment) => {
+        if (
+          snake.head.x === segment.x &&
+          snake.head.y === segment.y &&
+          snake.length < mySnakeLength
+        ) {
+          return;
+        }
+
         if (myHead.x === segment.x - 1 && myHead.y === segment.y) {
           isMoveSafe.right = false; // Other snake is to the right
         }
