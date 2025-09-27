@@ -64,7 +64,8 @@ export function move(gameState: GameState): MoveResponse {
 
   // Step 2: Prevent colliding with yourself
   const myBody = gameState.you.body;
-  myBody.forEach((segment) => {
+  myBody.forEach((segment, i) => {
+    if (i === myBody.length - 1) return;
     if (myHead.x === segment.x - 1 && myHead.y === segment.y) {
       isMoveSafe.right = false; // My body is to the right
     }
@@ -83,7 +84,7 @@ export function move(gameState: GameState): MoveResponse {
   gameState.board.snakes
     .filter((snake) => snake.id !== gameState.you.id)
     .forEach((snake) => {
-      snake.body.forEach((segment) => {
+      snake.body.forEach((segment, i) => {
         if (
           snake.head.x === segment.x &&
           snake.head.y === segment.y &&
@@ -91,6 +92,8 @@ export function move(gameState: GameState): MoveResponse {
         ) {
           return;
         }
+
+        if (i === snake.body.length - 1) return;
 
         if (myHead.x === segment.x - 1 && myHead.y === segment.y) {
           isMoveSafe.right = false; // Other snake is to the right
