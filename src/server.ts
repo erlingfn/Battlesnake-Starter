@@ -122,20 +122,20 @@ export function move(gameState: GameState): MoveResponse {
     .forEach((snake) => {
       const head = snake.head;
       if (isNextTo(coordsAroundHead[0], head)) {
-        console.log("Other snake is to the right");
-        isMoveSafe.right = false; // Other snake is to the right
+        console.log("Other snake is to the left");
+        isMoveSafe.left = false; // Other snake is to the right
       }
       if (isNextTo(coordsAroundHead[1], head)) {
-        console.log("Other snake is to the left");
-        isMoveSafe.left = false; // Other snake is to the left
+        console.log("Other snake is to the right");
+        isMoveSafe.right = false; // Other snake is to the left
       }
       if (isNextTo(coordsAroundHead[2], head)) {
-        console.log("Other snake is above");
-        isMoveSafe.up = false; // Other snake is above
+        console.log("Other snake is below");
+        isMoveSafe.down = false; // Other snake is above
       }
       if (isNextTo(coordsAroundHead[3], head)) {
-        console.log("Other snake is below");
-        isMoveSafe.down = false; // Other snake is below
+        console.log("Other snake is above");
+        isMoveSafe.up = false; // Other snake is below
       }
     });
 
