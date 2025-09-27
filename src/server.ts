@@ -1,3 +1,4 @@
+import { optimizeNextInvocation } from "bun:jsc";
 import { Coord, GameState, InfoResponse, MoveResponse } from "./types";
 
 export function info(): InfoResponse {
@@ -337,8 +338,15 @@ export function move(gameState: GameState): MoveResponse {
 
   let nextMove = safeMoves[Math.floor(Math.random() * safeMoves.length)];
 
+  const opponents = gameState.board.snakes.filter(
+    (snake) => snake.id !== gameState.you.id
+  );
+
   // If distance shorter than 3, move towards head of shorter snake
-  if (minDistanceSnakes < 3) {
+  if (
+    minDistanceSnakes < 3 ||
+    (opponents.length === 1 && opponents[0].length + 1 < mySnakeLength)
+  ) {
     console.log("Go for kill");
     const closestShorterSnake =
       shorterSnakesHeads[distances.indexOf(minDistanceSnakes)];
