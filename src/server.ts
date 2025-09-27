@@ -350,12 +350,27 @@ export function move(gameState: GameState): MoveResponse {
     (opponents.length === 1 && opponents[0].length + 1 < mySnakeLength)
   ) {
     console.log("Go for kill");
+    const preferredMoves: string[] = [];
     const closestShorterSnake =
       shorterSnakesHeads[distances.indexOf(minDistanceSnakes)];
     if (closestShorterSnake.x < myHead.x) {
-      nextMove = "left";
+      preferredMoves.push("left");
     } else if (closestShorterSnake.x > myHead.x) {
-      nextMove = "right";
+      preferredMoves.push("right");
+    } else if (closestShorterSnake.y < myHead.y) {
+      preferredMoves.push("down");
+    } else if (closestShorterSnake.y > myHead.y) {
+      preferredMoves.push("up");
+    }
+
+    const safePreferredMoves = preferredMoves.filter((move) =>
+      safeMoves.includes(move)
+    );
+    if (safePreferredMoves.length > 0) {
+      nextMove =
+        safePreferredMoves[
+          Math.floor(Math.random() * safePreferredMoves.length)
+        ];
     }
     // If no snake to kill and food which I am closest to, move towards food
   } else if (closestFood !== undefined) {
