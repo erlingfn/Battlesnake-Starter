@@ -270,7 +270,9 @@ export function move(gameState: GameState): MoveResponse {
 
   // Check if other snakes may move into same space as you and mark as unsafe
   gameState.board.snakes
-    .filter((snake) => snake.id !== gameState.you.id)
+    .filter(
+      (snake) => snake.id !== gameState.you.id && snake.length > mySnakeLength
+    )
     .forEach((snake) => {
       const head = snake.head;
       if (isNextTo(coordsAroundHead[0], head)) {
