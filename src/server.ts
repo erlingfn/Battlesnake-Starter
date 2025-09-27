@@ -140,6 +140,50 @@ export function move(gameState: GameState): MoveResponse {
     return closestSnake.id;
   };
 
+  // Check how many open coordinates are next to a given coordinate
+  const countOpenAdjacentCoords = (targetCoord: Coord) => {
+    const adjacentCoords = [
+      { x: targetCoord.x - 1, y: targetCoord.y }, // left
+      { x: targetCoord.x + 1, y: targetCoord.y }, // right
+      { x: targetCoord.x, y: targetCoord.y - 1 }, // down
+      { x: targetCoord.x, y: targetCoord.y + 1 }, // up
+    ];
+
+    let openCount = 0;
+
+    adjacentCoords.forEach((coord) => {
+      // Check if coordinate is within board bounds
+      if (
+        coord.x >= 0 &&
+        coord.x < gameState.board.width &&
+        coord.y >= 0 &&
+        coord.y < gameState.board.height
+      ) {
+        // Check if coordinate is occupied by any snake body
+        let isOccupied = false;
+
+        gameState.board.snakes.forEach((snake) => {
+          snake.body.forEach((bodySegment) => {
+            if (bodySegment.x === coord.x && bodySegment.y === coord.y) {
+              isOccupied = true;
+            }
+          });
+        });
+
+        // Check if coordinate is a hazard
+        const isHazard = gameState.board.hazards.some(
+          (hazard) => hazard.x === coord.x && hazard.y === coord.y
+        );
+
+        if (!isOccupied && !isHazard) {
+          openCount++;
+        }
+      }
+    });
+
+    return openCount;
+  };
+
   // Generate coord
   const coordsAroundHead = [
     { x: myHead.x - 1, y: myHead.y },
@@ -170,6 +214,19 @@ export function move(gameState: GameState): MoveResponse {
         isMoveSafe.up = false; // Other snake is below
       }
     });
+
+  if (countOpenAdjacentCoords(coordsAroundHead[0]) === 0) {
+    isMoveSafe.left = false;
+  }
+  if (countOpenAdjacentCoords(coordsAroundHead[1]) === 0) {
+    isMoveSafe.right = false; // Other snake is to the left
+  }
+  if (countOpenAdjacentCoords(coordsAroundHead[2]) === 0) {
+    isMoveSafe.down = false;
+  }
+  if (countOpenAdjacentCoords(coordsAroundHead[3]) === 0) {
+    isMoveSafe.up = false; // Other snake is to the left
+  }
 
   // Get all safe moves
   const safeMoves = Object.keys(isMoveSafe).filter((key) => isMoveSafe[key]);
