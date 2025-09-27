@@ -184,6 +184,79 @@ export function move(gameState: GameState): MoveResponse {
     return openCount;
   };
 
+  // Helper function to check if a coordinate is open (not occupied by snakes or hazards)
+  const isCoordOpen = (coord: Coord) => {
+    // Check if coordinate is within board bounds
+    if (
+      coord.x < 0 ||
+      coord.x >= gameState.board.width ||
+      coord.y < 0 ||
+      coord.y >= gameState.board.height
+    ) {
+      return false;
+    }
+
+    // Check if coordinate is occupied by any snake body
+    let isOccupied = false;
+    gameState.board.snakes.forEach((snake) => {
+      snake.body.forEach((bodySegment) => {
+        if (bodySegment.x === coord.x && bodySegment.y === coord.y) {
+          isOccupied = true;
+        }
+      });
+    });
+
+    // Check if coordinate is a hazard
+    const isHazard = gameState.board.hazards.some(
+      (hazard) => hazard.x === coord.x && hazard.y === coord.y
+    );
+
+    return !isOccupied && !isHazard;
+  };
+
+  // Check if a coordinate is part of a connected space with more than 5 open coordinates
+  const isPartOfLargeOpenSpace = (startCoord: Coord, minSize: number = 5) => {
+    if (!isCoordOpen(startCoord)) {
+      return false;
+    }
+
+    const visited = new Set<string>();
+    const queue: Coord[] = [startCoord];
+    const coordToString = (coord: Coord) => `${coord.x},${coord.y}`;
+
+    visited.add(coordToString(startCoord));
+    let openSpaceSize = 1;
+
+    while (queue.length > 0 && openSpaceSize < minSize) {
+      const currentCoord = queue.shift()!;
+
+      // Check all 4 adjacent coordinates
+      const adjacentCoords = [
+        { x: currentCoord.x - 1, y: currentCoord.y }, // left
+        { x: currentCoord.x + 1, y: currentCoord.y }, // right
+        { x: currentCoord.x, y: currentCoord.y - 1 }, // down
+        { x: currentCoord.x, y: currentCoord.y + 1 }, // up
+      ];
+
+      for (const adjCoord of adjacentCoords) {
+        const coordKey = coordToString(adjCoord);
+
+        if (!visited.has(coordKey) && isCoordOpen(adjCoord)) {
+          visited.add(coordKey);
+          queue.push(adjCoord);
+          openSpaceSize++;
+
+          // Early exit if we've found enough open space
+          if (openSpaceSize >= minSize) {
+            return true;
+          }
+        }
+      }
+    }
+
+    return openSpaceSize >= minSize;
+  };
+
   // Generate coord
   const coordsAroundHead = [
     { x: myHead.x - 1, y: myHead.y },
@@ -273,6 +346,7 @@ export function move(gameState: GameState): MoveResponse {
     } else if (closestShorterSnake.x > myHead.x) {
       nextMove = "right";
     }
+    // If no snake to kill and food which I am closest to, move towards food
   } else if (closestFood !== undefined) {
     const preferredMoves: string[] = [];
     if (myHead.x < closestFood.x) {
@@ -294,6 +368,35 @@ export function move(gameState: GameState): MoveResponse {
       nextMove =
         safePreferredMoves[
           Math.floor(Math.random() * safePreferredMoves.length)
+        ];
+    }
+    // If no food to move towards choose any space with enough open space next to it
+  } else {
+    // Filter safe moves by whether they lead to large open spaces
+    const safeMovesInOpenSpace = safeMoves.filter((move) => {
+      let targetCoord: Coord;
+      switch (move) {
+        case "up":
+          targetCoord = { x: myHead.x, y: myHead.y + 1 };
+          break;
+        case "down":
+          targetCoord = { x: myHead.x, y: myHead.y - 1 };
+          break;
+        case "left":
+          targetCoord = { x: myHead.x - 1, y: myHead.y };
+          break;
+        case "right":
+          targetCoord = { x: myHead.x + 1, y: myHead.y };
+          break;
+        default:
+          return false;
+      }
+      return isPartOfLargeOpenSpace(targetCoord, 5);
+    });
+    if (safeMovesInOpenSpace.length > 0) {
+      nextMove =
+        safeMovesInOpenSpace[
+          Math.floor(Math.random() * safeMovesInOpenSpace.length)
         ];
     }
   }
